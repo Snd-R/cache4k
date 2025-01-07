@@ -51,7 +51,7 @@ public class FakeTimeSource : AbstractLongTimeSource(unit = DurationUnit.NANOSEC
 
     private fun overflow(duration: Duration) {
         throw IllegalStateException(
-            "FakeTimeSource will overflow if its reading ${reading}ns is advanced by $duration."
+            "FakeTimeSource will overflow if its reading ${reading.value}ns is advanced by $duration."
         )
     }
 }

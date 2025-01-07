@@ -122,28 +122,30 @@ internal class RealCache<Key : Any, Value : Any>(
         expireEntries()
 
         val existingEntry = cacheEntries[key]
-        val oldValue = existingEntry?.value?.value
+
         if (existingEntry != null) {
+            val oldValue = existingEntry.value.value
             // cache entry found
             recordWrite(existingEntry)
             existingEntry.value.value = value
+
+            onEvent(
+                CacheEvent.Updated(key = key, oldValue = oldValue, newValue = value)
+            )
         } else {
             // create a new cache entry
             val nowTimeMark = timeSource.markNow()
             val newEntry = CacheEntry(
                 key = key,
-                value = atomic(value),
-                accessTimeMark = atomic(nowTimeMark),
-                writeTimeMark = atomic(nowTimeMark),
+                value = value,
+                accessTimeMark = nowTimeMark,
+                writeTimeMark = nowTimeMark,
             )
             recordWrite(newEntry)
             cacheEntries.put(key, newEntry)
+
+            onEvent(CacheEvent.Created(key = key, value = value))
         }
-        onEvent(
-            oldValue?.let {
-                CacheEvent.Updated(key = key, oldValue = it, newValue = value)
-            } ?: CacheEvent.Created(key = key, value = value)
-        )
 
         evictEntries()
     }
@@ -221,7 +223,7 @@ internal class RealCache<Key : Any, Value : Any>(
      */
     private fun CacheEntry<Key, Value>.isExpired(): Boolean {
         return expiresAfterAccess && (accessTimeMark.value + expireAfterAccessDuration).hasPassedNow() ||
-            expiresAfterWrite && (writeTimeMark.value + expireAfterWriteDuration).hasPassedNow()
+                expiresAfterWrite && (writeTimeMark.value + expireAfterWriteDuration).hasPassedNow()
     }
 
     /**
@@ -290,7 +292,12 @@ internal class RealCache<Key : Any, Value : Any>(
  */
 private class CacheEntry<Key : Any, Value : Any>(
     val key: Key,
-    val value: AtomicRef<Value>,
-    val accessTimeMark: AtomicRef<TimeMark>,
-    val writeTimeMark: AtomicRef<TimeMark>,
-)
+    value: Value,
+    accessTimeMark: TimeMark,
+    writeTimeMark: TimeMark,
+) {
+    val value: AtomicRef<Value> = atomic(value)
+    val accessTimeMark: AtomicRef<TimeMark> = atomic(accessTimeMark)
+    val writeTimeMark: AtomicRef<TimeMark> = atomic(writeTimeMark)
+
+}
