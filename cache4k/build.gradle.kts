@@ -6,6 +6,7 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(17)
     jvm{
         val main = compilations.getByName("main")
         compilations.create("lincheck") {
@@ -57,13 +58,6 @@ kotlin {
         jvmTest {
             dependencies {
                 implementation(kotlin("test-junit5"))
-            }
-        }
-        val jvmLincheck by getting {
-            dependsOn(jvmMain.get())
-            dependencies {
-                implementation(kotlin("test-junit5"))
-                implementation(libs.kotlinx.lincheck)
             }
         }
     }
