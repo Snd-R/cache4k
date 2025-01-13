@@ -7,31 +7,7 @@ plugins {
 
 kotlin {
     jvmToolchain(17)
-    jvm{
-        val main = compilations.getByName("main")
-        compilations.create("lincheck") {
-            defaultSourceSet {
-                dependencies {
-                    implementation(main.compileDependencyFiles + main.output.classesDirs)
-                }
-            }
-            project.tasks.register<Test>("jvmLincheck") {
-                classpath = compileDependencyFiles + runtimeDependencyFiles + output.allOutputs
-                testClassesDirs = output.classesDirs
-                useJUnitPlatform()
-                testLogging {
-                    events("passed", "skipped", "failed")
-                }
-                jvmArgs(
-                    "--add-opens", "java.base/jdk.internal.misc=ALL-UNNAMED",
-                    "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-                    "--add-exports", "java.base/jdk.internal.util=ALL-UNNAMED",
-                    "--add-exports", "java.base/jdk.internal.vm=ALL-UNNAMED",
-                    "--add-exports", "java.base/jdk.internal.access=ALL-UNNAMED",
-                )
-            }
-        }
-    }
+    jvm()
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
